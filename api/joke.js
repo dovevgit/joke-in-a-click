@@ -3,6 +3,20 @@
 // בבדיחה { joke }, ובטריוויה { question, answer }.
 
 const MAX_TOPIC = 100;
+const MAX_AVOID = 12;
+const MAX_AVOID_LENGTH = 200;
+
+// גיוון בטריוויה: כל בקשה מקבלת זווית אקראית, ובלי נושא גם תחום אקראי.
+// הבחירה האקראית נעשית בקוד ולא במודל, כי מודל שמתבקש "שאלה כללית" חוזר לאותן שאלות מוכרות.
+const TRIVIA_FIELDS = [
+  "היסטוריה", "גאוגרפיה", "בעלי חיים", "גוף האדם", "חלל ואסטרונומיה", "המצאות", "אוכל",
+  "מוזיקה", "ספורט", "שפות ומילים", "ים ואוקיינוסים", "צמחים", "מדינת ישראל", "אמנות", "מזג אוויר",
+];
+const TRIVIA_ANGLES = [
+  "שיא או מספר מפתיע", "מקור או היסטוריה", "אדם או ממציא", "מקום", "עובדה שרוב האנשים לא יודעים",
+  "מילה או שם", "השוואה בין שני דברים", "תאריך או תקופה",
+];
+const pick = (list) => list[Math.floor(Math.random() * list.length)];
 const OPENAI_URL = "https://api.openai.com/v1/responses";
 
 const MODES = {
@@ -17,7 +31,15 @@ const MODES = {
       "אתה כותב שאלות טריוויה בעברית. כתוב שאלה אחת על הנושא, עם תשובה אחת קצרה ונכונה עובדתית. " +
       "בחר רק עובדה שאתה בטוח בה לגמרי. אם אינך בטוח, בחר עובדה אחרת על אותו נושא. " +
       "השאלה ברורה, עם תשובה אחת בלבד, ומתאימה לכל גיל. התשובה עד שמונה מילים, ואחריה משפט קצר אחד שמסביר אותה. בלי אימוג׳י.",
-    input: (topic) => (topic ? `נושא השאלה: ${topic}` : "אין נושא. שאל שאלת ידע כללי."),
+    input: (topic, avoid) => {
+      const lines = [
+        topic ? `נושא השאלה: ${topic}` : `אין נושא. שאל שאלה בתחום: ${pick(TRIVIA_FIELDS)}.`,
+        `זווית השאלה: ${pick(TRIVIA_ANGLES)}.`,
+        "העדף שאלה פחות צפויה, לא את השאלה הראשונה שעולה לך על הנושא.",
+      ];
+      if (avoid.length) lines.push("אל תשאל אף אחת מהשאלות האלה, וגם לא שאלה דומה להן:", ...avoid.map((q) => `- ${q}`));
+      return lines.join("\n");
+    },
     missing: "השאלה לא הגיעה. נסו שוב.",
     // המודל מחזיר JSON במבנה קבוע, והקוד בודק אותו לפני שהוא שולח לדף
     format: {
@@ -86,10 +108,18 @@ export default {
 
     let topic = "";
     let modeName = "joke";
+    let avoid = [];
     try {
       const body = await request.json();
       if (typeof body?.topic === "string") topic = body.topic.trim().slice(0, MAX_TOPIC);
       if (body?.mode === "trivia") modeName = "trivia";
+      // שאלות אחרונות שהדפדפן כבר הציג, כדי שהמודל לא יחזור עליהן. מוגבל בכמות ובאורך.
+      if (Array.isArray(body?.avoid)) {
+        avoid = body.avoid
+          .filter((q) => typeof q === "string" && q.trim())
+          .slice(-MAX_AVOID)
+          .map((q) => q.trim().slice(0, MAX_AVOID_LENGTH));
+      }
     } catch {
       // גוף שבור נחשב "אין נושא", במצב בדיחה
     }
@@ -106,7 +136,7 @@ export default {
         body: JSON.stringify({
           model,
           instructions: mode.instructions,
-          input: mode.input(topic),
+          input: mode.input(topic, avoid),
           reasoning: { effort: "low" },
           max_output_tokens: 2000,
           ...(mode.format && { text: { format: mode.format } }),

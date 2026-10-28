@@ -376,6 +376,16 @@
 
   let mode = "joke";
   let currentTrivia = null;
+  // השאלות האחרונות שהוצגו, נשלחות לשרת כדי שלא יחזרו. נשמרות בדפדפן בלבד.
+  const RECENT_LIMIT = 12;
+  let recentQuestions = [];
+  try { recentQuestions = JSON.parse(localStorage.getItem("joke-recent-trivia") || "[]"); } catch {}
+  if (!Array.isArray(recentQuestions)) recentQuestions = [];
+
+  function rememberQuestion(question) {
+    recentQuestions = [...recentQuestions.filter((q) => q !== question), question].slice(-RECENT_LIMIT);
+    try { localStorage.setItem("joke-recent-trivia", JSON.stringify(recentQuestions)); } catch {}
+  }
   try { if (localStorage.getItem("joke-mode") === "trivia") mode = "trivia"; } catch {}
   document.getElementById(`mode-${mode}`).checked = true;
 
@@ -562,12 +572,13 @@
       const response = await fetch("/api/joke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic, mode: requestMode }),
+        body: JSON.stringify({ topic, mode: requestMode, avoid: requestMode === "trivia" ? recentQuestions : [] }),
       });
       const data = await response.json().catch(() => ({}));
       if (requestMode !== mode) return; // המצב הוחלף בזמן ההמתנה
       if (requestMode === "trivia" && response.ok && data.question && data.answer) {
         currentTrivia = data;
+        rememberQuestion(data.question);
         show("question", data.question);
       } else if (requestMode === "joke" && response.ok && data.joke) {
         show("joke", data.joke);
