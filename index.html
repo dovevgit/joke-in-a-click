@@ -23,6 +23,7 @@
     --error: #C0261B;
     --error-bg: #FFE8EC;
     --hint: #756B92;
+    --mint-bg: #E3F9EF;
     --pink: #FF5FA8;
     --mint: #1FCB8C;
     --violet: #8B5CF6;
@@ -33,6 +34,7 @@
   }
 
   * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
 
   body {
     margin: 0;
@@ -205,6 +207,56 @@
 
   /* שגיאה */
   .bubble[data-state="error"] { background: var(--error-bg); }
+
+  /* טריוויה: השאלה בכתב יד כמו הבדיחה, והתמונה בפינה */
+  .bubble[data-state="question"], .bubble[data-state="answer"] { padding-top: 46px; }
+  .bubble[data-state="question"] .mascot, .bubble[data-state="answer"] .mascot {
+    position: absolute; top: -38px; right: -22px; width: 86px; transform: rotate(8deg);
+  }
+  .bubble[data-state="question"] .message, .bubble[data-state="answer"] .message {
+    font: 500 23px/1.5 var(--joke-font); color: var(--ink);
+  }
+
+  .reveal {
+    font: 700 19px var(--ui-font);
+    color: var(--ink);
+    background: var(--sun);
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    box-shadow: 0 5px 0 var(--ink);
+    padding: 8px 24px;
+    cursor: pointer;
+  }
+  .reveal:active { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+  .reveal:focus-visible { outline: 4px solid var(--blue); outline-offset: 3px; }
+
+  .answer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    background: var(--mint-bg);
+    border: 3px dashed var(--mint);
+    border-radius: 16px;
+    padding: 10px 14px;
+  }
+  .answer strong { font: 700 22px/1.3 var(--ui-font); color: var(--ink); }
+  .answer span { font-size: 16px; color: var(--ink-soft); }
+
+  /* המתג בין בדיחה לטריוויה */
+  .mode {
+    align-self: center;
+    display: flex;
+    background: var(--paper);
+    border: 3px solid var(--ink);
+    border-radius: 999px;
+    box-shadow: 3px 3px 0 var(--ink);
+    padding: 4px;
+  }
+  .mode input { position: absolute; opacity: 0; pointer-events: none; }
+  .mode label { font: 600 18px var(--ui-font); padding: 6px 24px; border-radius: 999px; cursor: pointer; }
+  .mode input:checked + label { background: var(--ink); color: var(--sun); }
+  .mode input:focus-visible + label { outline: 3px solid var(--blue); outline-offset: 2px; }
   .bubble[data-state="error"] .message { color: var(--error); font-weight: 600; }
 
   footer {
@@ -263,10 +315,15 @@
 
 <main>
   <h1 class="logo" aria-label="הבדיחות של דובב"><span class="logo-word" aria-hidden="true"><span>ה</span><span>ב</span><span>ד</span><span>י</span><span>ח</span><span>ו</span><span>ת</span></span><span class="plank" aria-hidden="true">של דובב</span></h1>
-  <p class="intro">כותבים נושא, לוחצים, וצוחקים. בלי נושא, מקבלים בדיחה כללית.</p>
+  <p class="intro">בוחרים בדיחה או שאלת טריוויה, כותבים נושא, ולוחצים. בלי נושא, מקבלים משהו כללי.</p>
+
+  <div class="mode" role="radiogroup" aria-label="מה לקבל?">
+    <input type="radio" name="mode" id="mode-joke" value="joke" checked><label for="mode-joke">בדיחה</label>
+    <input type="radio" name="mode" id="mode-trivia" value="trivia"><label for="mode-trivia">טריוויה</label>
+  </div>
 
   <form id="form">
-    <label for="topic">על מה הבדיחה?
+    <label for="topic"><span id="topic-label">על מה הבדיחה?</span>
       <input class="topic" id="topic" name="topic" type="text" maxlength="100" placeholder="למשל: חתולים" autocomplete="off">
     </label>
     <button class="go" id="go" type="submit">תנו לי בדיחה!</button>
@@ -275,6 +332,8 @@
   <section class="bubble" id="bubble" data-state="idle">
     <img class="mascot" id="mascot" src="assets/mascot-dovev.jpg" alt="">
     <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
+    <button class="reveal" id="reveal" type="button" hidden>הראו תשובה</button>
+    <div class="answer" id="answer" aria-live="polite" hidden><strong id="answer-text"></strong><span id="answer-why"></span></div>
   </section>
 </main>
 
@@ -289,7 +348,36 @@
   const mascot = document.getElementById("mascot");
   const message = document.getElementById("message");
 
-  const BUTTON_TEXT = { idle: "תנו לי בדיחה!", think: "חושב...", joke: "עוד בדיחה!", error: "לנסות שוב" };
+  const reveal = document.getElementById("reveal");
+  const answerBox = document.getElementById("answer");
+  const answerText = document.getElementById("answer-text");
+  const answerWhy = document.getElementById("answer-why");
+  const topicLabel = document.getElementById("topic-label");
+
+  // הטקסטים של כל מצב: בדיחה או טריוויה
+  const TEXT = {
+    joke: {
+      label: "על מה הבדיחה?",
+      idle: "לוחצים על הכפתור, והבדיחה מופיעה כאן",
+      go: "תנו לי בדיחה!",
+      again: "עוד בדיחה!",
+      think: (topic) => (topic ? `מחפש בדיחה על ${topic}...` : "מחפש בדיחה..."),
+      lost: "אופס, הבדיחה הלכה לאיבוד. נסו שוב.",
+    },
+    trivia: {
+      label: "על מה השאלה?",
+      idle: "לוחצים על הכפתור, והשאלה מופיעה כאן",
+      go: "תנו לי שאלה!",
+      again: "עוד שאלה!",
+      think: (topic) => (topic ? `מחפש שאלה על ${topic}...` : "מחפש שאלה..."),
+      lost: "אופס, השאלה הלכה לאיבוד. נסו שוב.",
+    },
+  };
+
+  let mode = "joke";
+  let currentTrivia = null;
+  try { if (localStorage.getItem("joke-mode") === "trivia") mode = "trivia"; } catch {}
+  document.getElementById(`mode-${mode}`).checked = true;
 
   // צליל "בה-דום-טסס": שתי מכות תוף ומצילה, כמו אחרי פאנץ' בסטנדאפ.
   // נוצר בקוד עם Web Audio, בלי קובצי שמע. הדפדפן מרשה צליל רק אחרי לחיצה,
@@ -425,34 +513,67 @@
   }
 
   function show(state, text) {
+    const t = TEXT[mode];
     bubble.dataset.state = state;
     message.textContent = text;
-    button.textContent = BUTTON_TEXT[state];
+    button.textContent = { idle: t.go, think: "חושב...", error: "לנסות שוב" }[state] ?? t.again;
     button.disabled = state === "think";
-    if (state === "joke") {
+    reveal.hidden = state !== "question";
+    answerBox.hidden = state !== "answer";
+    // בבדיחה החגיגה באה מיד. בטריוויה היא מחכה לתשובה.
+    if (state === "joke" || state === "answer") {
       burstConfetti();
       badumTss();
     }
   }
 
+  function applyMode() {
+    topicLabel.textContent = TEXT[mode].label;
+    currentTrivia = null;
+    show("idle", TEXT[mode].idle);
+  }
+
+  for (const radio of document.querySelectorAll('input[name="mode"]')) {
+    radio.addEventListener("change", () => {
+      mode = radio.value;
+      try { localStorage.setItem("joke-mode", mode); } catch {}
+      applyMode();
+    });
+  }
+
+  reveal.addEventListener("click", () => {
+    if (!currentTrivia) return;
+    unlockAudio();
+    answerText.textContent = currentTrivia.answer;
+    answerWhy.textContent = currentTrivia.explanation;
+    show("answer", currentTrivia.question);
+  });
+
+  applyMode();
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     unlockAudio();
     const topic = topicInput.value.trim();
-    show("think", topic ? `מחפש בדיחה על ${topic}...` : "מחפש בדיחה...");
+    const requestMode = mode;
+    show("think", TEXT[requestMode].think(topic));
 
     try {
       const response = await fetch("/api/joke", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ topic }),
+        body: JSON.stringify({ topic, mode: requestMode }),
       });
       const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data.joke) {
-        show("error", data.error || "אופס, הבדיחה הלכה לאיבוד. נסו שוב.");
-        return;
+      if (requestMode !== mode) return; // המצב הוחלף בזמן ההמתנה
+      if (requestMode === "trivia" && response.ok && data.question && data.answer) {
+        currentTrivia = data;
+        show("question", data.question);
+      } else if (requestMode === "joke" && response.ok && data.joke) {
+        show("joke", data.joke);
+      } else {
+        show("error", data.error || TEXT[requestMode].lost);
       }
-      show("joke", data.joke);
     } catch (error) {
       console.error(error);
       show("error", "אין חיבור לאינטרנט. נסו שוב.");
