@@ -179,7 +179,8 @@
     text-align: center;
   }
 
-  .mascot { width: 118px; height: auto; }
+  /* הדמות היא התמונה של דובב: עיגול עם קו מתאר בדיו, כמו שאר הרכיבים */
+  .mascot { width: 118px; height: auto; aspect-ratio: 1; border-radius: 50%; box-shadow: 0 0 0 3px var(--ink); }
 
   .message {
     margin: 0;
@@ -251,7 +252,7 @@
   </form>
 
   <section class="bubble" id="bubble" data-state="idle">
-    <img class="mascot" id="mascot" src="assets/mascot-idle.svg" alt="">
+    <img class="mascot" id="mascot" src="assets/mascot-dovev.jpg" alt="">
     <p class="message" id="message" aria-live="polite">לוחצים על הכפתור, והבדיחה מופיעה כאן</p>
   </section>
 </main>
@@ -270,7 +271,6 @@
 
   function show(state, text) {
     bubble.dataset.state = state;
-    mascot.src = `assets/mascot-${state}.svg`;
     message.textContent = text;
     button.textContent = BUTTON_TEXT[state];
     button.disabled = state === "think";
