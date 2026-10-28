@@ -33,8 +33,9 @@ export default {
   async fetch(request) {
     if (request.method !== "POST") return fail(405, "רק POST");
 
-    // trim: מפתח שהודבק עם רווח או ירידת שורה שובר את כותרת הבקשה
-    const apiKey = process.env.OPENAI_API_KEY?.trim();
+    // מפתח של OpenAI בנוי רק מאותיות באנגלית, ספרות, - ו-_. כל תו אחר (רווח, ירידת שורה,
+    // סימן כיוון נסתר מהדבקה) שובר את כותרת הבקשה, ולכן מנקים אותו.
+    const apiKey = process.env.OPENAI_API_KEY?.replace(/[^A-Za-z0-9_-]/g, "");
     if (!apiKey) {
       console.error("OPENAI_API_KEY is missing");
       return fail(500, "השרת לא מוגדר עדיין.");
