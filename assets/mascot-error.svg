@@ -1,18 +1,29 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 112" width="120" height="112">
-  <title>הכפתור מסוחרר</title>
-  <!-- base plate -->
-  <ellipse cx="60" cy="96" rx="54" ry="14" fill="#2B1E4A"/>
-  <ellipse cx="60" cy="90" rx="47" ry="12" fill="#6B5B9A" stroke="#2B1E4A" stroke-width="3"/>
-  <!-- the red button -->
-  <path d="M20 88V52a40 32 0 0 1 80 0v36a40 11 0 0 1-80 0z" fill="#F23D2F" stroke="#2B1E4A" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M23 80a37 10 0 0 0 74 0v8a40 11 0 0 1-77 0z" fill="#C92A20"/>
-  <ellipse cx="42" cy="34" rx="11" ry="5" transform="rotate(-22 42 34)" fill="#FFFFFF" opacity=".85"/>
+  <title>הליצן מסוחרר</title>
+  <!-- ruffled collar -->
+  <path d="M22 98q6-10 12 0q6-10 13 0q6-10 13 0q7-10 13 0q6-10 13 0q6-10 12 0q-4 10-38 12q-34-2-38-12z" fill="#FFE15A" stroke="#2B1E4A" stroke-width="3" stroke-linejoin="round"/>
+  <!-- curly hair, left and right -->
+  <g stroke="#2B1E4A" stroke-width="3">
+    <circle cx="27" cy="50" r="10" fill="#FF5FA8"/>
+    <circle cx="21" cy="64" r="10" fill="#2E9BFF"/>
+    <circle cx="27" cy="78" r="10" fill="#1FCB8C"/>
+    <circle cx="93" cy="50" r="10" fill="#FF5FA8"/>
+    <circle cx="99" cy="64" r="10" fill="#2E9BFF"/>
+    <circle cx="93" cy="78" r="10" fill="#1FCB8C"/>
+  </g>
+  <!-- face -->
+  <ellipse cx="60" cy="64" rx="30" ry="31" fill="#FFFFFF" stroke="#2B1E4A" stroke-width="4"/>
+  <!-- party hat -->
+  <path d="M40 40L62 6L82 40q-21 6-42 0z" fill="#8B5CF6" stroke="#2B1E4A" stroke-width="3.5" stroke-linejoin="round"/>
+  <path d="M50 25l6 4M66 18l6 5M58 34l7 3" stroke="#FFE15A" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="62" cy="6" r="6" fill="#FFE15A" stroke="#2B1E4A" stroke-width="3"/>
   <!-- cheeks -->
-  <ellipse cx="34" cy="70" rx="6" ry="3.5" fill="#FF8FB8"/>
-  <ellipse cx="86" cy="70" rx="6" ry="3.5" fill="#FF8FB8"/>
-  <!-- face: X eyes, wavy mouth, stars over the head -->
-  <path d="M40 51l12 12M52 51l-12 12M68 51l12 12M80 51l-12 12" stroke="#2B1E4A" stroke-width="4" stroke-linecap="round"/>
-  <path d="M46 76q5-6 10 0t10 0t10 0" fill="none" stroke="#2B1E4A" stroke-width="4" stroke-linecap="round"/>
-  <path d="M60 4l2.5 6 6 2.5-6 2.5-2.5 6-2.5-6-6-2.5 6-2.5z" fill="#FFE15A" stroke="#2B1E4A" stroke-width="2"/>
-  <path d="M88 12l2 4.5 4.5 2-4.5 2-2 4.5-2-4.5-4.5-2 4.5-2z" fill="#FFE15A" stroke="#2B1E4A" stroke-width="2"/>
+  <circle cx="40" cy="76" r="6" fill="#FF8FB8"/>
+  <circle cx="80" cy="76" r="6" fill="#FF8FB8"/>
+  <path d="M42 53l10 10M52 53l-10 10M68 53l10 10M78 53l-10 10" stroke="#2B1E4A" stroke-width="4" stroke-linecap="round"/>
+  <!-- wobbly mouth -->
+  <path d="M44 86q4-5 8 0t8 0t8 0t8 0" fill="none" stroke="#F23D2F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- red nose -->
+  <circle cx="60" cy="68" r="8" fill="#F23D2F" stroke="#2B1E4A" stroke-width="3"/>
+  <ellipse cx="57" cy="65" rx="2.5" ry="1.8" fill="#FFFFFF" opacity=".9"/>
 </svg>

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>בדיחה בלחיצה</title>
+<title>בדיחות קרש</title>
 <meta name="description" content="כותבים נושא, לוחצים, וצוחקים.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -23,6 +23,11 @@
     --error: #C0261B;
     --error-bg: #FFE8EC;
     --hint: #756B92;
+    --pink: #FF5FA8;
+    --mint: #1FCB8C;
+    --violet: #8B5CF6;
+    --wood: #C98B4F;
+    --nail: #B8B3C9;
     --ui-font: "Fredoka", system-ui, sans-serif;
     --joke-font: "Playpen Sans Hebrew", "Fredoka", system-ui, sans-serif;
   }
@@ -32,8 +37,7 @@
   body {
     margin: 0;
     min-height: 100vh;
-    background: var(--sun) url("assets/bg-dots.svg") repeat;
-    background-size: 16px 16px;
+    background: var(--sun);
     color: var(--ink);
     font-family: var(--ui-font);
     display: flex;
@@ -41,18 +45,13 @@
     align-items: center;
   }
 
-  .doodles {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    width: 440px;
-    max-width: 100%;
-    /* חותכים את שתי הנקודות שבתחתית הציור, כדי שלא ישבו על שורת ההסבר */
-    height: 190px;
-    object-fit: cover;
-    object-position: top;
-    transform: translateX(-50%);
-    pointer-events: none;
+  /* רקע העיר העתידנית. שכבה קבועה מאחורי הכל, כי background-attachment: fixed לא עובד טוב באייפון */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: url("assets/bg-future.jpg") center / cover no-repeat;
   }
 
   main {
@@ -66,7 +65,49 @@
     flex: 1;
   }
 
-  .logo { display: block; width: 300px; max-width: 100%; margin: 0 auto; }
+  /* הלוגו: "בדיחות" באותיות צבעוניות קופצות, ו"קרש" על קרש עץ ממוסמר */
+  .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 6px; }
+  .logo-word { display: flex; font: 700 clamp(52px, 17vw, 72px)/1 var(--ui-font); }
+  .logo-word span {
+    -webkit-text-stroke: 3px var(--ink);
+    paint-order: stroke fill;
+    text-shadow: 4px 4px 0 var(--ink);
+  }
+  .logo-word span:nth-child(1) { color: var(--blue); transform: rotate(-6deg) translateY(4px); }
+  .logo-word span:nth-child(2) { color: var(--pink); transform: rotate(5deg) translateY(-3px); }
+  .logo-word span:nth-child(3) { color: var(--sun); transform: rotate(-4deg) translateY(2px); }
+  .logo-word span:nth-child(4) { color: var(--mint); transform: rotate(7deg) translateY(-4px); }
+  .logo-word span:nth-child(5) { color: var(--violet); transform: rotate(-5deg) translateY(3px); }
+  .logo-word span:nth-child(6) { color: var(--red); transform: rotate(4deg); }
+  .plank {
+    position: relative;
+    font: 700 36px/1 var(--ui-font);
+    color: #fff;
+    -webkit-text-stroke: 2.5px var(--ink);
+    paint-order: stroke fill;
+    padding: 8px 40px 10px;
+    background:
+      repeating-linear-gradient(176deg, transparent 0 7px, rgba(90, 50, 15, 0.22) 7px 9px),
+      var(--wood);
+    border: 3px solid var(--ink);
+    border-radius: 10px 6px 12px 7px;
+    box-shadow: 5px 5px 0 var(--ink);
+    transform: rotate(-3deg);
+  }
+  /* שני מסמרים בקצוות הקרש */
+  .plank::before, .plank::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    margin-top: -4.5px;
+    border-radius: 50%;
+    background: var(--nail);
+    border: 2px solid var(--ink);
+  }
+  .plank::before { right: 12px; }
+  .plank::after { left: 12px; }
 
   h1 { margin: 0; }
 
@@ -167,8 +208,15 @@
   footer {
     padding: 8px 18px 18px;
     font-size: 13px;
-    color: var(--ink-soft);
+    color: var(--ink);
     text-align: center;
+  }
+  /* רקע לבן שקוף למחצה, כדי שהשורה תיקרא מעל העיר */
+  footer span {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.75);
+    border-radius: 999px;
+    padding: 4px 12px;
   }
 
   /* תנועה */
@@ -189,10 +237,9 @@
 </style>
 </head>
 <body>
-<img class="doodles" src="assets/bg-doodles.svg" alt="">
 
 <main>
-  <h1><img class="logo" src="assets/logo.svg" alt="בדיחה בלחיצה"></h1>
+  <h1 class="logo" aria-label="בדיחות קרש"><span class="logo-word" aria-hidden="true"><span>ב</span><span>ד</span><span>י</span><span>ח</span><span>ו</span><span>ת</span></span><span class="plank" aria-hidden="true">קרש</span></h1>
   <p class="intro">כותבים נושא, לוחצים, וצוחקים. בלי נושא, מקבלים בדיחה כללית.</p>
 
   <form id="form">
@@ -208,7 +255,7 @@
   </section>
 </main>
 
-<footer>מיישם AI ואוטומציה · 53500</footer>
+<footer><span>מיישם AI ואוטומציה · 53500</span></footer>
 
 <script>
   const form = document.getElementById("form");

@@ -1,18 +1,16 @@
 // Service worker בגישת network-first: קודם רשת, ואם אין רשת, מהמטמון.
 // בקשות ל-/api לא נשמרות אף פעם: כל בדיחה צריכה להגיע מהשרת.
 
-const CACHE = "joke-v1";
+const CACHE = "joke-v2";
 
 const PRECACHE = [
   "/",
   "/manifest.webmanifest",
-  "/assets/logo.svg",
+  "/assets/bg-future.jpg",
   "/assets/mascot-idle.svg",
   "/assets/mascot-think.svg",
   "/assets/mascot-joke.svg",
   "/assets/mascot-error.svg",
-  "/assets/bg-dots.svg",
-  "/assets/bg-doodles.svg",
   "/assets/icon.svg",
   "/assets/icon-maskable.svg",
   "/assets/icon-192.png",
