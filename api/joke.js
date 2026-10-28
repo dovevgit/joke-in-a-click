@@ -33,7 +33,8 @@ export default {
   async fetch(request) {
     if (request.method !== "POST") return fail(405, "רק POST");
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    // trim: מפתח שהודבק עם רווח או ירידת שורה שובר את כותרת הבקשה
+    const apiKey = process.env.OPENAI_API_KEY?.trim();
     if (!apiKey) {
       console.error("OPENAI_API_KEY is missing");
       return fail(500, "השרת לא מוגדר עדיין.");
@@ -65,7 +66,8 @@ export default {
         }),
       });
     } catch (error) {
-      console.error("OpenAI network error:", error);
+      // בלי error.message: בשגיאת כותרת הוא עלול לכלול את המפתח
+      console.error(`OpenAI request failed: ${error.name} ${error.cause?.code ?? ""}`);
       return fail(502, "אין חיבור לשירות הבדיחות. נסו שוב.");
     }
 
