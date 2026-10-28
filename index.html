@@ -44,6 +44,10 @@
     left: 50%;
     width: 440px;
     max-width: 100%;
+    /* חותכים את שתי הנקודות שבתחתית הציור, כדי שלא ישבו על שורת ההסבר */
+    height: 190px;
+    object-fit: cover;
+    object-position: top;
     transform: translateX(-50%);
     pointer-events: none;
   }
@@ -232,12 +236,15 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic }),
       });
-      const data = await response.json();
-      if (!response.ok || !data.joke) throw new Error(data.error || "אין בדיחה");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.joke) {
+        show("error", data.error || "אופס, הבדיחה הלכה לאיבוד. נסו שוב.");
+        return;
+      }
       show("joke", data.joke);
     } catch (error) {
       console.error(error);
-      show("error", "אופס, הבדיחה הלכה לאיבוד. נסו שוב.");
+      show("error", "אין חיבור לאינטרנט. נסו שוב.");
     }
   });
 </script>
