@@ -214,6 +214,24 @@
     text-align: center;
   }
   /* רקע לבן שקוף למחצה, כדי שהשורה תיקרא מעל העיר */
+  /* כפתור הצליל: עיגול קטן בפינה, מעל הכל */
+  .sound {
+    position: fixed;
+    top: calc(12px + env(safe-area-inset-top, 0px));
+    left: calc(12px + env(safe-area-inset-left, 0px));
+    z-index: 11;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 3px solid var(--ink);
+    background: var(--paper);
+    box-shadow: 3px 3px 0 var(--ink);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .sound:focus-visible { outline: 4px solid var(--blue); outline-offset: 2px; }
+
   footer span {
     display: inline-block;
     background: rgba(255, 255, 255, 0.75);
@@ -231,6 +249,9 @@
   .bubble[data-state="think"] .mascot { animation: squish 0.5s ease-in-out infinite; transform-origin: bottom; }
   .bubble[data-state="joke"] .mascot { animation: roll 0.6s ease-in-out 4; }
   .bubble[data-state="error"] .mascot { animation: wobble 0.5s ease-in-out 2; }
+
+  /* קונפטי: שכבה שקופה מעל כל המסך, שלא חוסמת לחיצות */
+  .confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 10; }
 
   @media (prefers-reduced-motion: reduce) {
     .mascot { animation: none !important; }
@@ -257,6 +278,7 @@
   </section>
 </main>
 
+<button class="sound" id="sound" type="button" aria-pressed="true" aria-label="צלילים פועלים. לחיצה משתיקה">🔊</button>
 <footer><span>מיישם AI ואוטומציה · 53500</span></footer>
 
 <script>
@@ -269,15 +291,153 @@
 
   const BUTTON_TEXT = { idle: "תנו לי בדיחה!", think: "חושב...", joke: "עוד בדיחה!", error: "לנסות שוב" };
 
+  // צליל "בה-דום-טסס": שתי מכות תוף ומצילה, כמו אחרי פאנץ' בסטנדאפ.
+  // נוצר בקוד עם Web Audio, בלי קובצי שמע. הדפדפן מרשה צליל רק אחרי לחיצה,
+  // ולכן ה-AudioContext נפתח בלחיצה על הכפתור, והצליל מתנגן כשהבדיחה מגיעה.
+  const soundButton = document.getElementById("sound");
+  let audioCtx = null;
+  let soundOn = true;
+  try { soundOn = localStorage.getItem("joke-sound") !== "off"; } catch {}
+
+  function renderSoundButton() {
+    soundButton.textContent = soundOn ? "🔊" : "🔇";
+    soundButton.setAttribute("aria-pressed", String(soundOn));
+    soundButton.setAttribute("aria-label", soundOn ? "צלילים פועלים. לחיצה משתיקה" : "צלילים מושתקים. לחיצה מפעילה");
+  }
+
+  function unlockAudio() {
+    if (!soundOn) return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    audioCtx = audioCtx || new AudioCtx();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  }
+
+  function drum(time, freq) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(freq, time);
+    osc.frequency.exponentialRampToValueAtTime(freq * 0.5, time + 0.15);
+    gain.gain.setValueAtTime(0.7, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.2);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(time);
+    osc.stop(time + 0.22);
+  }
+
+  function cymbal(time) {
+    const length = audioCtx.sampleRate * 0.8;
+    const buffer = audioCtx.createBuffer(1, length, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = "highpass";
+    filter.frequency.value = 7000;
+    const gain = audioCtx.createGain();
+    gain.gain.setValueAtTime(0.4, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.7);
+    noise.connect(filter).connect(gain).connect(audioCtx.destination);
+    noise.start(time);
+    noise.stop(time + 0.8);
+  }
+
+  function badumTss() {
+    if (!soundOn || !audioCtx) return;
+    const t = audioCtx.currentTime + 0.02;
+    drum(t, 190);
+    drum(t + 0.16, 130);
+    cymbal(t + 0.34);
+  }
+
+  soundButton.addEventListener("click", () => {
+    soundOn = !soundOn;
+    try { localStorage.setItem("joke-sound", soundOn ? "on" : "off"); } catch {}
+    renderSoundButton();
+    unlockAudio();
+  });
+  renderSoundButton();
+
+  // קונפטי שמתפוצץ מהבועה כשמגיעה בדיחה. בלי ספרייה: קנבס אחד ומאתיים פיסות נייר.
+  const CONFETTI_COLORS = ["#F23D2F", "#FFE15A", "#2E9BFF", "#FF5FA8", "#1FCB8C", "#8B5CF6"];
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let confettiCanvas = null;
+
+  function burstConfetti() {
+    if (reduceMotion.matches) return;
+    if (!confettiCanvas) {
+      confettiCanvas = document.createElement("canvas");
+      confettiCanvas.className = "confetti";
+      confettiCanvas.setAttribute("aria-hidden", "true");
+      document.body.appendChild(confettiCanvas);
+    }
+    const ratio = window.devicePixelRatio || 1;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    confettiCanvas.width = width * ratio;
+    confettiCanvas.height = height * ratio;
+    const ctx = confettiCanvas.getContext("2d");
+    ctx.scale(ratio, ratio);
+
+    const box = bubble.getBoundingClientRect();
+    const originX = box.left + box.width / 2;
+    const originY = box.top + 20;
+    const pieces = Array.from({ length: 200 }, () => {
+      const angle = -Math.PI / 2 + (Math.random() - 0.5) * Math.PI * 1.2;
+      const speed = 6 + Math.random() * 9;
+      return {
+        x: originX + (Math.random() - 0.5) * box.width * 0.6,
+        y: originY,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        size: 6 + Math.random() * 6,
+        spin: (Math.random() - 0.5) * 0.4,
+        turn: Math.random() * Math.PI,
+        color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+      };
+    });
+
+    const start = performance.now();
+    function frame(now) {
+      const t = now - start;
+      ctx.clearRect(0, 0, width, height);
+      for (const p of pieces) {
+        p.vy += 0.28;
+        p.vx *= 0.985;
+        p.x += p.vx;
+        p.y += p.vy;
+        p.turn += p.spin;
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, 1 - t / 2600);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.turn);
+        ctx.fillStyle = p.color;
+        // Math.cos יוצר את האפקט של נייר שמתהפך באוויר
+        ctx.fillRect(-p.size / 2, -p.size / 4, p.size, (p.size / 2) * Math.abs(Math.cos(p.turn * 2)) + 1);
+        ctx.restore();
+      }
+      if (t < 2600) requestAnimationFrame(frame);
+      else ctx.clearRect(0, 0, width, height);
+    }
+    requestAnimationFrame(frame);
+  }
+
   function show(state, text) {
     bubble.dataset.state = state;
     message.textContent = text;
     button.textContent = BUTTON_TEXT[state];
     button.disabled = state === "think";
+    if (state === "joke") {
+      burstConfetti();
+      badumTss();
+    }
   }
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
+    unlockAudio();
     const topic = topicInput.value.trim();
     show("think", topic ? `מחפש בדיחה על ${topic}...` : "מחפש בדיחה...");
 
