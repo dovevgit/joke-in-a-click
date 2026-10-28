@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>בדיחות קרש</title>
+<title>הבדיחות של דובב</title>
 <meta name="description" content="כותבים נושא, לוחצים, וצוחקים.">
 <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="assets/icon-192.png">
@@ -65,9 +65,9 @@
     flex: 1;
   }
 
-  /* הלוגו: "בדיחות" באותיות צבעוניות קופצות, ו"קרש" על קרש עץ ממוסמר */
+  /* הלוגו: "הבדיחות" באותיות צבעוניות קופצות, ו"של דובב" על קרש עץ ממוסמר */
   .logo { display: flex; flex-direction: column; align-items: center; gap: 6px; padding-top: 6px; }
-  .logo-word { display: flex; font: 700 clamp(52px, 17vw, 72px)/1 var(--ui-font); }
+  .logo-word { display: flex; font: 700 clamp(48px, 15vw, 68px)/1 var(--ui-font); }
   .logo-word span {
     -webkit-text-stroke: 3px var(--ink);
     paint-order: stroke fill;
@@ -79,6 +79,7 @@
   .logo-word span:nth-child(4) { color: var(--mint); transform: rotate(7deg) translateY(-4px); }
   .logo-word span:nth-child(5) { color: var(--violet); transform: rotate(-5deg) translateY(3px); }
   .logo-word span:nth-child(6) { color: var(--red); transform: rotate(4deg); }
+  .logo-word span:nth-child(7) { color: var(--blue); transform: rotate(-3deg) translateY(-2px); }
   .plank {
     position: relative;
     font: 700 36px/1 var(--ui-font);
@@ -239,7 +240,7 @@
 <body>
 
 <main>
-  <h1 class="logo" aria-label="בדיחות קרש"><span class="logo-word" aria-hidden="true"><span>ב</span><span>ד</span><span>י</span><span>ח</span><span>ו</span><span>ת</span></span><span class="plank" aria-hidden="true">קרש</span></h1>
+  <h1 class="logo" aria-label="הבדיחות של דובב"><span class="logo-word" aria-hidden="true"><span>ה</span><span>ב</span><span>ד</span><span>י</span><span>ח</span><span>ו</span><span>ת</span></span><span class="plank" aria-hidden="true">של דובב</span></h1>
   <p class="intro">כותבים נושא, לוחצים, וצוחקים. בלי נושא, מקבלים בדיחה כללית.</p>
 
   <form id="form">

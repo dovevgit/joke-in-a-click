@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
-  <title>בדיחות קרש</title>
+  <title>הבדיחות של דובב</title>
   <defs><pattern id="dots" width="32" height="32" patternUnits="userSpaceOnUse"><circle cx="16" cy="16" r="3.2" fill="#E8AA00" fill-opacity=".32"/></pattern></defs>
   <rect width="512" height="512" fill="#FFE15A"/>
   <rect width="512" height="512" fill="url(#dots)"/>
